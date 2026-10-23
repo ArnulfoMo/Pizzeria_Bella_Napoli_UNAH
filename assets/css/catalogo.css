@@ -1,0 +1,63 @@
+/* Secciones */
+.section-pad {
+    padding: 80px 0
+}
+
+.section-cream {
+    background: #faf6ee
+}
+
+.section-text {
+    font-size: 1.14rem;
+    color: #544e48
+}
+
+/* Titulos de categorias */
+.titulo-categoria {
+    font-family: Georgia, serif;
+    font-size: 40px;
+    margin-top: 50px;
+    margin-bottom: 30px;
+}
+
+/* Tarjetas */
+.card-pizza {
+    border: 1px solid #e8ddd5;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+/* Imagen */
+.pizza-img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+}
+
+/* Nombre de pizza */
+.card-pizza h4 {
+    font-family: Georgia, serif;
+    margin-bottom: 15px;
+}
+
+/* Descripcion */
+.card-pizza p {
+    color: #777;
+}
+
+/* Tabla de precios */
+.card-pizza .table {
+    font-size: 14px;
+}
+
+/* Boton */
+.btn-pedir {
+    color: #b83e2d;
+    border: 1px solid #b83e2d;
+    padding: 12px;
+}
+
+.btn-pedir:hover {
+    background-color: #b83e2d;
+    color: white;
+}
