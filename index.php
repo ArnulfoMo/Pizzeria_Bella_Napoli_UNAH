@@ -1,2 +1,7 @@
 <?php require 'datos.php';
-include 'header.php'; ?>
+include 'includes/header.php'; ?>
+
+
+
+
+<?php include 'includes/footer.php'; ?>

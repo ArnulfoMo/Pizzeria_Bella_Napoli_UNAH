@@ -1,0 +1,100 @@
+/* CSS DEL NAVBAR */
+
+
+/* Color del navbar */
+.navbar-napoli {
+    background-color: #211d1a;
+    padding: 18px 0;
+}
+
+/* Nombre de la pizza */
+.navbar-brand {
+    font-size: 24px;
+    letter-spacing: 2px;
+    color: #ffffff;
+}
+
+
+/* Enlaces del nav */
+.navbar-nav .nav-link {
+    color: #d6d0cc;
+    margin-left: 12px;
+    font-size: 16px;
+}
+
+.navbar-nav .nav-link:hover {
+    color: #ffffff;
+}
+
+/* Boton */
+.btn-ordenar {
+    background-color: #b83e2d;
+    color: white;
+    padding: 15px 25px;
+    border-radius: 5px;
+    font-weight: bold;
+}
+
+.btn-ordenar:hover {
+    background-color: #a13224;
+    color: white;
+}
+
+/* Para que tengo lo del celular */
+@media (max-width: 991px) {
+    .navbar-nav {
+        align-items: flex-start !important;
+    }
+
+    .navbar-nav .nav-link {
+        margin-left: 0;
+        margin-top: 10px;
+    }
+
+    .btn-ordenar {
+        margin-top: 15px;
+    }
+}
+
+
+
+/* CSS DEL FOOTER */
+
+
+/* Color */
+.footer-napoli {
+    background-color: #211d1a;
+    color: #d6d0cc;
+    font-size: 16px;
+}
+
+/* Pizza nomrbe */
+.footer-napoli h5 {
+    color: #ffffff;
+    letter-spacing: 2px;
+}
+
+.footer-napoli h6 {
+    color: #ffffff;
+}
+
+.footer-napoli p {
+    line-height: 1.8;
+    margin-bottom: 8px;
+}
+
+/* Enlaces */
+.footer-enlace {
+    color: #e8a77d;
+    text-decoration: none;
+}
+
+.footer-enlace:hover {
+    color: #ffffff;
+}
+
+.footer-linea {
+    border-color: #5c5550;
+    margin-top: 25px;
+    margin-bottom: 25px;
+}
