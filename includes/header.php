@@ -1,5 +1,3 @@
-
-
 <!doctype html>
 <html lang="es">
 
@@ -9,11 +7,21 @@
     <title>Bella Napoli</title>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/navbarFooter.css">
+
+
+    <!-- Con este codigo se puede obtener el nombre de la pagina en la que estamos
+     asi podemos hacer que el CSS sea dinamico por asi decirlo y no tener que referenciar
+     todos los CSS en el header.-->
+    <?php
+    $pagina = basename($_SERVER['PHP_SELF'], '.php');
+    ?>
+
+    <link rel="stylesheet" href="assets/css/<?php echo $pagina; ?>.css">
 </head>
 
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark navbar-napoli">
+    <nav class="navbar navbar-expand-lg navbar-dark navbar-napoli fixed-top">
         <div class="container">
 
             <a class="navbar-brand fw-bold" href="index.php">
@@ -22,7 +30,7 @@
 
             <button class="navbar-toggler" type="button"
                 data-bs-toggle="collapse" data-bs-target="#nav">
-                <span class="navbar-toggler-icon"></span>   
+                <span class="navbar-toggler-icon"></span>
             </button>
 
             <div class="collapse navbar-collapse" id="nav">
@@ -43,4 +51,4 @@
         </div>
     </nav>
 
-    <main class="container py-4">
+    <main>

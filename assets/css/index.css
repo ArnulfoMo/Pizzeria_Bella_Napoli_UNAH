@@ -1,0 +1,104 @@
+
+/* HERO */
+
+.hero {
+    background: linear-gradient(120deg, #211d1a, #38271f);
+    color: white;
+    padding: 70px 0;
+}
+
+.hero-title {
+    font-family: Georgia, serif;
+    font-size: 70px;
+    margin: 25px 0;
+}
+
+.hero-title em {
+    color: #e8a77d;
+}
+
+.hero-text {
+    color: #e8a77d;
+    font-weight: bold;
+    letter-spacing: 2px;
+}
+
+.hero-intro {
+    font-size: 20px;
+    line-height: 1.8;
+    margin-bottom: 35px;
+}
+
+.btn-rojo {
+    background-color: #b83e2d;
+    color: white;
+}
+
+.btn-rojo:hover {
+    background-color: #963125;
+    color: white;
+}
+
+.hero-meta {
+    color: #e8a77d;
+    margin-top: 40px;
+}
+
+.hero-picture img {
+    width: 100%;
+}
+
+/* Celulares */
+@media (max-width: 768px) {
+    .hero-title {
+        font-size: 42px;
+    }
+
+    .hero-intro {
+        font-size: 17px;
+    }
+}
+
+
+/* Secciones */
+.section-pad {
+    padding: 80px 0
+}
+
+.section-cream {
+    background: #faf6ee
+}
+
+.section-text {
+    font-size: 1.14rem;
+    color: #544e48
+}
+
+/* Botonoes del card de pizza  */
+.precio-pizza {
+    color: #b83e2d;
+    font-size: 18px;
+}
+
+.btn-pedir {
+    color: #b83e2d;
+    border: 1px solid #b83e2d;
+    padding: 10px 20px;
+}
+
+.btn-pedir:hover {
+    background-color: #b83e2d;
+    color: white;
+}
+
+/* Card de clientes  */
+.client-card {
+    background-color: #faf5f0;
+    border: 1px solid #e8ddd5;
+    border-radius: 10px;
+    padding: 30px;
+    height: 100%;
+    font-size: 17px;
+    line-height: 1.8;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+}

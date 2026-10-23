@@ -1,5 +1,7 @@
 /* CSS DEL NAVBAR */
-
+body {
+    padding-top: 90px;
+}
 
 /* Color del navbar */
 .navbar-napoli {
@@ -42,6 +44,9 @@
 
 /* Para que tengo lo del celular */
 @media (max-width: 991px) {
+    body {
+        padding-top: 80px;
+    }
     .navbar-nav {
         align-items: flex-start !important;
     }
