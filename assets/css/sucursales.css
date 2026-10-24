@@ -1,0 +1,164 @@
+/* CSS DE sucursales
+
+/* Encabezado de la pagina */
+.suc-encabezado {
+    background-color: #211d1a;
+    color: #ffffff;
+    padding: 70px 0;
+}
+
+.suc-encabezado h1 {
+    font-family: Georgia, serif;
+    font-size: 48px;
+    margin-bottom: 12px;
+}
+
+.suc-encabezado p {
+    color: #d6d0cc;
+    font-size: 1.1rem;
+    max-width: 640px;
+    margin-bottom: 0;
+}
+
+/* Secciones */
+.suc-seccion {
+    padding: 70px 0;
+}
+
+.suc-seccion-crema {
+    background-color: #faf6ee;
+}
+
+.suc-titulo {
+    font-family: Georgia, serif;
+    font-size: 34px;
+    margin-bottom: 30px;
+}
+
+/* Tarjetas de sucursales */
+.suc-card {
+    background-color: #ffffff;
+    border: 1px solid #e8ddd5;
+    border-top: 5px solid #b83e2d;
+    border-radius: 10px;
+    padding: 28px;
+}
+
+.suc-card h3 {
+    font-family: Georgia, serif;
+    font-size: 26px;
+    margin-bottom: 4px;
+}
+
+.suc-ciudad {
+    color: #777;
+    margin-bottom: 20px;
+}
+
+.suc-datos {
+    margin-bottom: 0;
+}
+
+.suc-datos dt {
+    font-size: 14px;
+    color: #b83e2d;
+    margin-top: 14px;
+}
+
+.suc-datos dd {
+    margin-bottom: 0;
+    color: #544e48;
+}
+
+/* Boton de vaciar sesion */
+.btn-reiniciar {
+    color: #b83e2d;
+    border: 1px solid #b83e2d;
+    background-color: transparent;
+    padding: 10px 22px;
+    border-radius: 5px;
+    font-weight: bold;
+}
+
+.btn-reiniciar:hover {
+    background-color: #b83e2d;
+    color: #ffffff;
+}
+
+/* Mensaje cuando no hay pedidos */
+.suc-vacio {
+    background-color: #ffffff;
+    border: 1px dashed #d9c9bd;
+    border-radius: 10px;
+    padding: 50px 20px;
+    text-align: center;
+    color: #544e48;
+}
+
+/* Tabla de ordenes */
+.suc-tabla-caja {
+    background-color: #ffffff;
+    border: 1px solid #e8ddd5;
+    border-radius: 10px;
+}
+
+.suc-tabla thead th {
+    background-color: #211d1a;
+    color: #ffffff;
+    font-weight: 600;
+    white-space: nowrap;
+    border-bottom: 0;
+}
+
+.suc-tabla td {
+    padding: 14px 12px;
+}
+
+/* Estado de la orden */
+.suc-estado {
+    background-color: #e8a77d;
+    color: #211d1a;
+    font-weight: 600;
+}
+
+.suc-nota {
+    color: #544e48;
+}
+
+/* Celular */
+@media (max-width: 767px) {
+    .suc-encabezado {
+        padding: 50px 0;
+    }
+
+    .suc-encabezado h1 {
+        font-size: 34px;
+    }
+
+    .suc-seccion {
+        padding: 50px 0;
+    }
+
+    .suc-titulo {
+        font-size: 28px;
+    }
+}
+
+/* Contacto general */
+.suc-contacto {
+    background-color: #faf6ee;
+    border: 1px solid #e8ddd5;
+    border-radius: 10px;
+    padding: 28px;
+}
+
+.suc-contacto h3 {
+    font-family: Georgia, serif;
+    font-size: 24px;
+    margin-bottom: 16px;
+}
+
+.suc-contacto p {
+    color: #544e48;
+    margin-bottom: 0;
+}
