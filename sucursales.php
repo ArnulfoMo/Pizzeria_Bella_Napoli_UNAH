@@ -1,11 +1,7 @@
 <?php
-// datos.php ya trae session_start() y las funciones limpiar() y dinero()
+
 require 'datos.php';
 
-/* ---------- Boton "Vaciar / Reiniciar sesion" ----------
-   Se procesa ANTES de imprimir HTML para poder redirigir.
-   Despues de borrar redirigimos a la misma pagina (evita que
-   F5 vuelva a enviar el formulario). */
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['reiniciar'])) {
     unset($_SESSION['pedidos']);
     $_SESSION['aviso_sucursales'] = 'Las órdenes de la sesión fueron eliminadas.';
@@ -17,7 +13,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['reiniciar'])) {
 $aviso = $_SESSION['aviso_sucursales'] ?? '';
 unset($_SESSION['aviso_sucursales']);
 
-// Sucursales (cambien direcciones, telefonos y horarios por los reales)
+// Sucursales 
 $sucursales = [
     [
         'nombre'    => 'Tegucigalpa',
@@ -42,14 +38,14 @@ $sucursales = [
     ],
 ];
 
-// Contacto general (cambien por los datos reales)
+// Contacto general 
 $contacto = [
     'correo'   => 'contacto@bellanapoli.hn',
     'whatsapp' => '9999-0000',
     'redes'    => 'Instagram · Facebook · TikTok: @bellanapoli',
 ];
 
-// Ordenes guardadas en la sesion (las crea pedido.php)
+// Ordenes guardadas en la sesion 
 $pedidos = $_SESSION['pedidos'] ?? [];
 
 include 'includes/header.php';
@@ -155,7 +151,7 @@ include 'includes/header.php';
                     <tbody>
                         <?php foreach ($pedidos as $orden): ?>
                             <?php
-                            // Detalle puede venir como texto o como arreglo
+                            
                             $detalle = $orden['detalle'] ?? '';
                             if (is_array($detalle)) {
                                 $detalle = implode(', ', $detalle);
