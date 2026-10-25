@@ -1,0 +1,72 @@
+/* ===== Bella Napoli - estilos del módulo de pedidos ===== */
+:root {
+    --napoli-rojo: #c0392b;
+    --napoli-rojo-oscuro: #96281b;
+    --napoli-verde: #198754;
+    --napoli-crema: #fdf6ec;
+}
+
+/* Secciones (si ya las definiste en tu CSS principal, puedes borrar estas) */
+.section-pad  { padding: 3rem 0; }
+.section-cream { background: var(--napoli-crema); }
+
+/* Botón principal */
+.btn-rojo {
+    background: var(--napoli-rojo);
+    border-color: var(--napoli-rojo);
+    color: #fff;
+    font-weight: 600;
+    transition: background .2s, transform .1s;
+}
+.btn-rojo:hover,
+.btn-rojo:focus {
+    background: var(--napoli-rojo-oscuro);
+    border-color: var(--napoli-rojo-oscuro);
+    color: #fff;
+}
+.btn-rojo:active { transform: scale(.98); }
+
+/* Etiqueta "RESUMEN" */
+.hero-text {
+    color: var(--napoli-rojo);
+    font-size: .8rem;
+    font-weight: 700;
+    letter-spacing: .15em;
+}
+
+/* Formulario */
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--napoli-rojo);
+    box-shadow: 0 0 0 .2rem rgba(192, 57, 43, .2);
+}
+.form-check-input:checked {
+    background-color: var(--napoli-rojo);
+    border-color: var(--napoli-rojo);
+}
+
+/* Factura digital */
+#factura .table thead th { font-size: .85rem; text-transform: uppercase; }
+#factura hr { opacity: .3; }
+
+/* ===== Impresión: solo el comprobante ===== */
+@media print {
+    header, nav, footer,
+    .no-print,
+    #factura .btn,
+    #factura .alert-success {
+        display: none !important;
+    }
+    body { background: #fff !important; }
+    #factura { padding: 0; }
+    #factura .card {
+        box-shadow: none !important;
+        border: 1px solid #ccc !important;
+    }
+    #factura .card-header {
+        background: #fff !important;
+        color: #000 !important;
+        border-bottom: 2px solid #000;
+    }
+    #factura .badge { border: 1px solid #000; color: #000 !important; }
+}
