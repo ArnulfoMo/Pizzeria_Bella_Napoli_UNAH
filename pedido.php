@@ -2,11 +2,47 @@
 include 'includes/header.php'; ?>
 
 <?php
+/* session_start() ya se ejecuta en datos.php */
 if (!isset($_SESSION['pedidos'])) {
     $_SESSION['pedidos'] = [];
 }
 
-/*FORMULARIO*/
+/* ---------- CATÁLOGOS (todo viene de datos.php) ---------- */
+
+// Pizzas indexadas por nombre (ya sanitizado para comparar con lo recibido)
+$catalogo = [];
+foreach (pizzas() as $nombrePizza => $datosPizza) {
+    $catalogo[limpiar($nombrePizza)] = $datosPizza;
+}
+
+// Extras indexados por nombre sanitizado
+$catalogoExtras = [];
+foreach ($extras as $nombreExtra => $precioExtra) {
+    $catalogoExtras[limpiar($nombreExtra)] = $precioExtra;
+}
+
+$modalidadesPermitidas = [
+    'restaurante' => 'Para comer en restaurante',
+    'pickup'      => 'Para llevar (Pick-Up)',
+    'delivery'    => 'Envío a domicilio (Delivery)'
+];
+
+$metodosPermitidos = [
+    'efectivo' => 'Efectivo',
+    'tarjeta'  => 'Tarjeta de crédito / débito',
+    'ach'      => 'Transferencia ACH'
+];
+
+const TASA_ISV = 0.15;
+const DESCUENTO_VOLUMEN = 0.10;
+const COSTO_DELIVERY = 45.00;
+
+/* ---------- ESTADO DEL FORMULARIO ---------- */
+/* Nota: estas variables ya están sanitizadas con limpiar() (htmlspecialchars),
+   por eso se imprimen directamente, sin volver a escapar (evita doble codificación). */
+$errores = [];
+$orden = null;
+
 $nombre = '';
 $rtn = '';
 $telefono = '';
@@ -15,7 +51,7 @@ $direccion = '';
 $referencia = '';
 $pizza = '';
 if (isset($_GET['pizza'])) {
-    $pizza = limpiar(trim((string)$_GET['pizza'])); 
+    $pizza = limpiar($_GET['pizza']);
 }
 $tamano = '';
 $cantidadTexto = '1';
@@ -24,31 +60,31 @@ $metodoPago = '';
 $extrasSeleccionados = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    /*Sanitización*/
-    $nombre = limpiar(trim((string) ($_POST['nombre'] ?? '')));
-    $rtn = limpiar(trim((string) ($_POST['rtn'] ?? '')));
-    $telefono = limpiar(trim((string) ($_POST['telefono'] ?? '')));
-    $correo = limpiar(trim((string) ($_POST['correo'] ?? '')));
-    $direccion = limpiar(trim((string) ($_POST['direccion'] ?? '')));
-    $referencia = limpiar(trim((string) ($_POST['referencia'] ?? '')));
-    $pizza = limpiar(trim((string) ($_POST['pizza'] ?? '')));
-    $tamano = limpiar(trim((string) ($_POST['tamano'] ?? '')));
-    $cantidadTexto = limpiar(trim((string) ($_POST['cantidad'] ?? '')));
-    $modalidad = limpiar(trim((string) ($_POST['modalidad'] ?? '')));
-    $metodoPago = limpiar(trim((string) ($_POST['metodo_pago'] ?? '')));
+    /* ---------- 1. SANITIZACIÓN ---------- */
+    $nombre        = limpiar($_POST['nombre'] ?? '');
+    $rtn           = limpiar($_POST['rtn'] ?? '');
+    $telefono      = limpiar($_POST['telefono'] ?? '');
+    $correo        = limpiar($_POST['correo'] ?? '');
+    $direccion     = limpiar($_POST['direccion'] ?? '');
+    $referencia    = limpiar($_POST['referencia'] ?? '');
+    $pizza         = limpiar($_POST['pizza'] ?? '');
+    $tamano        = limpiar($_POST['tamano'] ?? '');
+    $cantidadTexto = limpiar($_POST['cantidad'] ?? '');
+    $modalidad     = limpiar($_POST['modalidad'] ?? '');
+    $metodoPago    = limpiar($_POST['metodo_pago'] ?? '');
 
     $recibidos = $_POST['ingredientes'] ?? [];
-
     if (!is_array($recibidos)) {
         $recibidos = [];
     }
-    foreach (array_slice($recibidos, 0, count($ingredientes)) as $extra) {
+    foreach (array_slice($recibidos, 0, count($extras)) as $extra) {
         if (is_string($extra)) {
-            $extrasSeleccionados[] = limpiar(trim($extra));
+            $extrasSeleccionados[] = limpiar($extra);
         }
     }
+    $extrasSeleccionados = array_values(array_unique($extrasSeleccionados));
 
-    /*VALIDACIONES*/
+    /* ---------- 2. VALIDACIONES DEL SERVIDOR ---------- */
     if ($nombre === '') {
         $errores[] = 'El nombre y apellido son obligatorios.';
     } elseif (mb_strlen($nombre, 'UTF-8') < 5) {
@@ -58,13 +94,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($rtn === '') {
         $errores[] = 'El RTN es obligatorio.';
     } elseif (!preg_match('/^[0-9]{14}$/', $rtn)) {
-        $errores[] = 'El RTN debe contener exactamente 14 dígitos.';
+        $errores[] = 'El RTN debe contener exactamente 14 dígitos numéricos.';
     }
 
     if ($telefono === '') {
         $errores[] = 'El teléfono es obligatorio.';
     } elseif (!preg_match('/^[0-9]{8}$/', $telefono)) {
-        $errores[] = 'El teléfono debe contener exactamente 8 dígitos.';
+        $errores[] = 'El teléfono debe contener exactamente 8 dígitos numéricos.';
     }
 
     if ($correo === '') {
@@ -81,9 +117,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errores[] = 'El punto de referencia es obligatorio.';
     }
 
-    if (!array_key_exists($pizza, $menu)) {
+    if (!array_key_exists($pizza, $catalogo)) {
         $errores[] = 'Selecciona una pizza válida.';
-    } elseif (!array_key_exists($tamano, $menu[$pizza])) {
+    }
+
+    // El tamaño se recibe como índice (0-3) de $tamanos
+    if (!preg_match('/^[0-9]+$/', $tamano) || !isset($tamanos[(int) $tamano])) {
         $errores[] = 'Selecciona un tamaño válido.';
     }
 
@@ -92,65 +131,54 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         (int) $cantidadTexto < 1 ||
         (int) $cantidadTexto > 100
     ) {
-        $errores[] = 'La cantidad debe ser un número entero entre 1 y 100.';
+        $errores[] = 'La cantidad debe ser un número entero positivo entre 1 y 100.';
     }
 
-    $modalidadesPermitidas = [
-        'restaurante',
-        'pickup',
-        'delivery'
-    ];
-
-    if (!in_array($modalidad, $modalidadesPermitidas, true)) {
+    if (!array_key_exists($modalidad, $modalidadesPermitidas)) {
         $errores[] = 'Selecciona una modalidad de entrega válida.';
     }
 
-    $metodosPermitidos = ['efectivo', 'tarjeta', 'ach'];
-
-    if (!in_array($metodoPago, $metodosPermitidos, true)) {
+    if (!array_key_exists($metodoPago, $metodosPermitidos)) {
         $errores[] = 'Selecciona un método de pago válido.';
     }
 
     foreach ($extrasSeleccionados as $extra) {
-        if (!array_key_exists($extra, $ingredientes)) {
+        if (!array_key_exists($extra, $catalogoExtras)) {
             $errores[] = 'Uno de los ingredientes seleccionados no es válido.';
             break;
         }
     }
 
-    /*calculos pedido*/
-
+    /* ---------- 3-7. CÁLCULOS ---------- */
     if (empty($errores)) {
+        $indiceTamano = (int) $tamano;
         $cantidad = (int) $cantidadTexto;
-        $precioUnitario = $menu[$pizza][$tamano];
+        $precioUnitario = $catalogo[$pizza][2][$indiceTamano];
         $recargoIngredientes = 0;
 
         foreach ($extrasSeleccionados as $extra) {
-            $recargoIngredientes += $ingredientes[$extra];
+            $recargoIngredientes += $catalogoExtras[$extra];
         }
 
-        $subtotal = (
-            $precioUnitario + $recargoIngredientes
-        ) * $cantidad;
+        // Subtotal = (precio según tamaño + recargo de ingredientes) * cantidad
+        $subtotal = ($precioUnitario + $recargoIngredientes) * $cantidad;
 
-        $descuento = ($cantidad >= 3)
-            ? $subtotal * 0.10
-            : 0;
+        // 10% de descuento si son 3 o más pizzas
+        $descuento = ($cantidad >= 3) ? $subtotal * DESCUENTO_VOLUMEN : 0.00;
 
         $subtotalNeto = $subtotal - $descuento;
 
-        $isv = $subtotalNeto * 0.15;
+        // ISV 15% sobre el subtotal neto gravable
+        $isv = $subtotalNeto * TASA_ISV;
 
-        $delivery = ($modalidad === 'delivery')
-            ? 45.00
-            : 0.00;
+        // Delivery solo para envío a domicilio
+        $delivery = ($modalidad === 'delivery') ? COSTO_DELIVERY : 0.00;
 
-        $total = round($subtotalNeto + $isv + $delivery, 2);
+        // Total = Subtotal - Descuento + ISV + Delivery
+        $total = round($subtotal - $descuento + $isv + $delivery, 2);
 
-        /*registro*/
-
-        $_SESSION['ultimo_folio'] =
-            ($_SESSION['ultimo_folio'] ?? 0) + 1;
+        /* ---------- 8. FOLIO CORRELATIVO ---------- */
+        $_SESSION['ultimo_folio'] = ($_SESSION['ultimo_folio'] ?? 0) + 1;
 
         $folio = 'ORD-NAP-' . str_pad(
             (string) $_SESSION['ultimo_folio'],
@@ -164,34 +192,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'fecha' => date('d/m/Y H:i:s'),
 
             'cliente' => [
-                'nombre' => $nombre,
-                'rtn' => $rtn,
-                'telefono' => $telefono,
-                'correo' => $correo,
-                'direccion' => $direccion,
+                'nombre'     => $nombre,
+                'rtn'        => $rtn,
+                'telefono'   => $telefono,
+                'correo'     => $correo,
+                'direccion'  => $direccion,
                 'referencia' => $referencia
             ],
 
             'producto' => [
-                'pizza' => $pizza,
-                'tamano' => $tamano,
-                'cantidad' => $cantidad,
-                'ingredientes' => $extrasSeleccionados,
-                'precio_unitario' => $precioUnitario,
+                'pizza'                => $pizza,
+                'tamano'               => limpiar($tamanos[$indiceTamano]),
+                'cantidad'             => $cantidad,
+                'ingredientes'         => $extrasSeleccionados,
+                'precio_unitario'      => $precioUnitario,
                 'recargo_ingredientes' => $recargoIngredientes
             ],
 
-            'modalidad' => $modalidad,
-            'metodo_pago' => $metodoPago,
+            'modalidad'     => $modalidadesPermitidas[$modalidad],
+            'metodo_pago'   => $metodosPermitidos[$metodoPago],
 
-            'subtotal' => $subtotal,
-            'descuento' => $descuento,
+            'subtotal'      => $subtotal,
+            'descuento'     => $descuento,
             'subtotal_neto' => $subtotalNeto,
-            'isv' => $isv,
-            'delivery' => $delivery,
-            'total' => $total
+            'isv'           => $isv,
+            'delivery'      => $delivery,
+            'total'         => $total
         ];
 
+        /* ---------- 9. PERSISTENCIA EN SESIÓN ---------- */
         $_SESSION['pedidos'][] = $orden;
     }
 }
@@ -241,38 +270,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <div class="mb-3">
                                 <label for="nombre" class="form-label">Nombre y apellido</label>
                                 <input type="text" class="form-control" id="nombre" name="nombre" minlength="5" maxlength="120" 
-                                value="<?= limpiar($nombre) ?>" required>
+                                value="<?= $nombre ?>" required>
                             </div>
 
                             <div class="row g-3">
                                 <div class="col-md-6">
                                     <label for="rtn" class="form-label">RTN</label>
                                     <input type="text" class="form-control" id="rtn" name="rtn" inputmode="numeric" 
-                                    pattern="[0-9]{14}" maxlength="14" value="<?= limpiar($rtn) ?>" placeholder="14 dígitos" required>
+                                    pattern="[0-9]{14}" maxlength="14" value="<?= $rtn ?>" placeholder="14 dígitos" required>
                                 </div>
 
                                 <div class="col-md-6">
                                     <label for="telefono" class="form-label">Teléfono</label>
                                     <input type="tel" class="form-control" id="telefono" name="telefono" 
-                                    inputmode="numeric" pattern="[0-9]{8}" maxlength="8" value="<?= limpiar($telefono) ?>" placeholder="8 dígitos" required>
+                                    inputmode="numeric" pattern="[0-9]{8}" maxlength="8" value="<?= $telefono ?>" placeholder="8 dígitos" required>
                                 </div>
                             </div>
 
                             <div class="mt-3 mb-3">
                                 <label for="correo" class="form-label">Correo electrónico</label>
-                                <input type="email" class="form-control" id="correo" name="correo" value="<?= limpiar($correo) ?>" required>
+                                <input type="email" class="form-control" id="correo" name="correo" value="<?= $correo ?>" required>
                             </div>
 
                             <div class="mb-3">
                                 <label for="direccion" class="form-label">Dirección de entrega</label>
-                                <textarea class="form-control" id="direccion" name="direccion" rows="2" required><?= limpiar($direccion) ?></textarea>
+                                <textarea class="form-control" id="direccion" name="direccion" rows="2" required><?= $direccion ?></textarea>
                             </div>
 
                             <div class="mb-4">
                                 <label for="referencia" class="form-label">Punto de referencia</label>
 
                                 <input type="text" class="form-control" id="referencia" name="referencia" 
-                                value="<?= limpiar($referencia) ?>" placeholder="Ej. Frente al parque" required >
+                                value="<?= $referencia ?>" placeholder="Ej. Frente al parque" required >
                             </div>
                             <hr class="my-4">
 
@@ -285,10 +314,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <select class="form-select" id="pizza" name="pizza" required>
                                     <option value="">Selecciona una pizza</option>
 
-                                    <?php foreach ($menu as $nombrePizza => $precios): ?>
-                                        <option value="<?= limpiar($nombrePizza) ?>" <?= $pizza === $nombrePizza ? 'selected' : '' ?>>
-                                            <?= limpiar($nombrePizza) ?>
-                                        </option>
+                                    <?php foreach ($menu as $categoria => $productos): ?>
+                                        <optgroup label="<?= limpiar($categoria) ?>">
+                                            <?php foreach ($productos as $p): ?>
+                                                <option value="<?= limpiar($p[0]) ?>" <?= $pizza === limpiar($p[0]) ? 'selected' : '' ?>>
+                                                    <?= limpiar($p[0]) ?>
+                                                </option>
+                                            <?php endforeach; ?>
+                                        </optgroup>
                                     <?php endforeach; ?>
                                 </select>
 
@@ -302,13 +335,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     <select class="form-select" id="tamano" name="tamano" required>
                                         <option value="">Selecciona un tamaño</option>
 
-                                        <?php foreach (
-                                            ['Pequeña', 'Mediana', 'Grande']
-                                            as $opcionTamano
-                                        ): ?>
-
-                                            <option
-                                                value="<?= limpiar($opcionTamano) ?>" <?= $tamano === $opcionTamano ? 'selected' : '' ?>>
+                                        <?php foreach ($tamanos as $i => $opcionTamano): ?>
+                                            <option value="<?= $i ?>" <?= $tamano !== '' && (string) $i === $tamano ? 'selected' : '' ?>>
                                                 <?= limpiar($opcionTamano) ?>
                                             </option>
                                         <?php endforeach; ?>
@@ -320,7 +348,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     <label for="cantidad" class="form-label">Cantidad</label>
 
                                     <input type="number" class="form-control" id="cantidad" name="cantidad" min="1" 
-                                    max="100" step="1" value="<?= limpiar($cantidadTexto) ?>" required>
+                                    max="100" step="1" value="<?= $cantidadTexto ?>" required>
                                 </div>
                             </div>
 
@@ -329,11 +357,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <div class="mt-4 mb-4">
                                 <h4 class="h6 fw-bold">Ingredientes adicionales</h4>
 
-                                <?php foreach ($ingredientes as $extra => $precio): ?>
+                                <?php foreach ($extras as $extra => $precio): ?>
                                     <div class="form-check mb-2">
                                         <input class="form-check-input" type="checkbox" name="ingredientes[]" 
                                         id="extra-<?= md5($extra) ?>" value="<?= limpiar($extra) ?>" 
-                                        <?= in_array( $extra, $extrasSeleccionados, true ) ? 'checked' : '' ?> >
+                                        <?= in_array(limpiar($extra), $extrasSeleccionados, true) ? 'checked' : '' ?> >
 
                                         <label class="form-check-label" for="extra-<?= md5($extra) ?>"> <?= limpiar($extra) ?>
                                             <span class="text-muted">
@@ -433,7 +461,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                         <div class="d-flex justify-content-between mb-3">
                             <span>Envío a domicilio</span>
-                            <strong>L. 45.00</strong>
+                            <strong><?= dinero(COSTO_DELIVERY) ?></strong>
                         </div>
 
                         <div class="alert alert-warning small mb-0">
@@ -466,7 +494,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </h2>
 
                 <span class="badge bg-white text-success fs-6">
-                    <?= limpiar($orden['folio']) ?>
+                    <?= $orden['folio'] ?>
                 </span>
             </div>
 
@@ -492,32 +520,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                         <p>
                             <strong>Nombre:</strong>
-                            <?= limpiar($orden['cliente']['nombre']) ?>
+                            <?= $orden['cliente']['nombre'] ?>
                         </p>
 
                         <p>
                             <strong>RTN:</strong>
-                            <?= limpiar($orden['cliente']['rtn']) ?>
+                            <?= $orden['cliente']['rtn'] ?>
                         </p>
 
                         <p>
                             <strong>Teléfono:</strong>
-                            <?= limpiar($orden['cliente']['telefono']) ?>
+                            <?= $orden['cliente']['telefono'] ?>
                         </p>
 
                         <p>
                             <strong>Correo:</strong>
-                            <?= limpiar($orden['cliente']['correo']) ?>
+                            <?= $orden['cliente']['correo'] ?>
                         </p>
 
                         <p>
                             <strong>Dirección:</strong>
-                            <?= limpiar($orden['cliente']['direccion']) ?>
+                            <?= $orden['cliente']['direccion'] ?>
                         </p>
 
                         <p>
                             <strong>Referencia:</strong>
-                            <?= limpiar($orden['cliente']['referencia']) ?>
+                            <?= $orden['cliente']['referencia'] ?>
                         </p>
 
                     </div>
@@ -530,22 +558,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                         <p>
                             <strong>Folio:</strong>
-                            <?= limpiar($orden['folio']) ?>
+                            <?= $orden['folio'] ?>
                         </p>
 
                         <p>
                             <strong>Fecha:</strong>
-                            <?= limpiar($orden['fecha']) ?>
+                            <?= $orden['fecha'] ?>
                         </p>
 
                         <p>
                             <strong>Modalidad:</strong>
-                            <?= limpiar($orden['modalidad']) ?>
+                            <?= $orden['modalidad'] ?>
                         </p>
 
                         <p>
                             <strong>Método de pago:</strong>
-                            <?= limpiar($orden['metodo_pago']) ?>
+                            <?= $orden['metodo_pago'] ?>
                         </p>
                     </div>
                 </div>
@@ -565,19 +593,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <tr>
                                 <td>
                                     <strong>
-                                        <?= limpiar($orden['producto']['pizza']) ?>
+                                        <?= $orden['producto']['pizza'] ?>
                                     </strong>
                                     <br>
 
                                     <span class="text-muted">
-                                        Tamaño: <?= limpiar($orden['producto']['tamano']) ?>
+                                        Tamaño: <?= $orden['producto']['tamano'] ?>
                                     </span>
 
                                     <?php if (!empty($orden['producto']['ingredientes'])): ?>
                                         <br>
                                         <small>
                                             Extras:
-                                            <?= limpiar(implode(', ', $orden['producto']['ingredientes'])) ?>
+                                            <?= implode(', ', $orden['producto']['ingredientes']) ?>
                                         </small>
                                     <?php endif; ?>
                                 </td>
@@ -611,7 +639,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         </div>
 
                         <div class="d-flex justify-content-between py-2">
-                            <span>Descuento (10 %)</span>
+                            <span>Descuento por volumen (10 %)</span>
                             <strong class="text-success">
                                 - <?= dinero($orden['descuento']) ?>
                             </strong>
