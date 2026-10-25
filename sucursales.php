@@ -151,17 +151,18 @@ include 'includes/header.php';
                     <tbody>
                         <?php foreach ($pedidos as $orden): ?>
                             <?php
-                            
-                            $detalle = $orden['detalle'] ?? '';
-                            if (is_array($detalle)) {
-                                $detalle = implode(', ', $detalle);
-                            }
+
+                            $detalle = $orden['producto']['pizza'] ?? '';
+                            $tamano = html_entity_decode($orden['producto']['tamano'] ?? '', ENT_QUOTES, 'UTF-8');
+                            $cantidad = $orden['producto']['cantidad'] ?? 0;
+
+                            $detalle = $detalle . ' - ' . $tamano . ' (x' . $cantidad . ')';
                             $estado = $orden['estado'] ?? 'Recibido';
                             ?>
                             <tr>
                                 <td class="fw-bold"><?= limpiar($orden['folio'] ?? '—') ?></td>
-                                <td><?= limpiar($orden['cliente'] ?? '—') ?></td>
-                                <td><?= limpiar($orden['telefono'] ?? '—') ?></td>
+                                <td><?= limpiar($orden['cliente']['nombre'] ?? '—') ?></td>
+                                <td><?= limpiar($orden['cliente']['telefono'] ?? '—') ?></td>
                                 <td><?= limpiar($detalle !== '' ? $detalle : '—') ?></td>
                                 <td class="text-end fw-bold">
                                     <?= isset($orden['total']) ? dinero($orden['total']) : '—' ?>
