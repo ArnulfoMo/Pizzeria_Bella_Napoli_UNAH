@@ -1,0 +1,117 @@
+/* ===== Variables de la marca ===== */
+:root {
+    --bn-oscuro: #221d1a;
+    --bn-rojo: #b8432f;
+    --bn-rojo-hover: #9c3624;
+    --bn-crema: #f9f5ee;
+    --bn-borde: #e6dfd3;
+    --bn-texto: #2a2522;
+}
+
+body {
+    background-color: var(--bn-crema);
+}
+
+--esto fue para que tuviera una sola tipografia
+--en todo el archivo
+
+.armar-pizza,
+.armar-pizza * {
+    font-family: inherit;
+}
+
+.armar-pizza {
+    color: var(--bn-texto);
+}
+
+.pizza-hero {
+    text-align: center;
+    margin-bottom: 2.5rem;
+}
+
+.pizza-titulo {
+    font-size: clamp(2.2rem, 5vw, 3.2rem);
+    font-weight: 700;
+    color: var(--bn-oscuro);
+    margin-bottom: 0.5rem;
+}
+
+.pizza-resumen .card-header {
+    background: var(--bn-oscuro);
+    color: #fff;
+    border-bottom: 3px solid var(--bn-rojo);
+    padding: 1rem 1.5rem;
+}
+
+.pizza-resumen .card-header h4 {
+    font-size: 1.2rem;
+    font-weight: 700;
+}
+
+.resumen-fila {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 0.7rem 0;
+    border-bottom: 1px dashed var(--bn-borde);
+}
+
+.resumen-fila:last-child {
+    border-bottom: none;
+}
+
+.pizza-seccion {
+    --acento: #9c3624;
+    background:#fff;
+    border: 1px solid color #fff;
+    border-left: 5px solid var(--acento);
+    border-radius: 0.6rem;
+    padding: 1.25rem 1.5rem 1rem;
+    margin-bottom: 1.25rem;
+}
+
+.pizza-legend {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--bn-oscuro);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+}
+
+.armar-pizza .form-check {
+    background: #fff;
+    padding: 0.7rem 0.9rem 0.7rem 2.4rem;
+    border: 1px solid var(--bn-borde);
+    border-radius: 0.5rem;
+}
+
+.armar-pizza .form-check:hover {
+    border-color: var(--acento);
+}
+
+.armar-pizza .form-check-input:checked {
+    background-color: var(--acento);
+    border-color: var(--acento);
+}
+
+.armar-pizza .form-check-input:focus,
+.armar-pizza .form-select:focus {
+    border-color: var(--acento);
+    box-shadow: 0 0 0 0.2rem color-mix(in srgb, var(--acento) 25%, transparent);
+}
+
+.armar-pizza .form-check-label {
+    cursor: pointer;
+    width: 100%;
+}
+
+.armar-pizza .form-select {
+    border-radius: 0.5rem;
+    border-color: var(--bn-borde);
+    padding: 0.7rem 1rem;
+}
+
+
